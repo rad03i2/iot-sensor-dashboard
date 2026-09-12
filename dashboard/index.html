@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IoT Sensor Dashboard</title>
+  <style>
+    body { margin: 0; font-family: system-ui, Arial; background: #0b1220; color: #e5f0ff; display: grid; place-items: center; min-height: 100vh; }
+    main { width: min(760px, 92%); padding: 28px; border-radius: 24px; background: rgba(255,255,255,.08); }
+    .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .card { padding: 22px; border-radius: 18px; background: rgba(255,255,255,.1); }
+    strong { font-size: 2.4rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>IoT Sensor Dashboard</h1>
+    <div class="cards">
+      <div class="card"><p>Temperature</p><strong id="temperature">--</strong></div>
+      <div class="card"><p>Light</p><strong id="light">--</strong></div>
+    </div>
+    <p id="updated">Waiting for data...</p>
+  </main>
+  <script>
+    async function loadReading() {
+      const data = await fetch('http://localhost:3000/api/reading').then(r => r.json());
+      temperature.textContent = data.temperature + '°C';
+      light.textContent = data.light;
+      updated.textContent = 'Updated: ' + data.updatedAt;
+    }
+    loadReading();
+    setInterval(loadReading, 3000);
+  </script>
+</body>
+</html>
