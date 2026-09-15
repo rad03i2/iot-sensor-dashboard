@@ -19,3 +19,8 @@ A small Internet of Things dashboard prototype that connects sensor firmware con
 cd server
 node index.js
 ```
+
+## Official links
+
+- Portfolio: https://rdwan.dev
+- Project page: https://rdwan.dev/projects/11-iot-sensor-dashboard.html
