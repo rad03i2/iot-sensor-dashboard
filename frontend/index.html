@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EcoPulse AI</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">VIRTUAL ENVIRONMENTAL INTELLIGENCE</p>
+      <h1>EcoPulse <span>AI</span></h1>
+    </div>
+    <div class="live"><i></i><span>LIVE SIMULATION</span></div>
+  </header>
+
+  <main>
+    <section class="hero panel">
+      <div>
+        <p class="eyebrow">NETWORK HEALTH</p>
+        <div class="score-row"><strong id="network-score">--</strong><span>/100</span></div>
+        <p id="network-status" class="status-text">Connecting to environmental network…</p>
+      </div>
+      <div class="hero-stats">
+        <div><span>Stations</span><strong id="station-count">5</strong></div>
+        <div><span>Scenario</span><strong id="scenario">baseline</strong></div>
+        <div><span>Data source</span><strong>SIMULATED</strong></div>
+      </div>
+    </section>
+
+    <section class="controls panel">
+      <div>
+        <p class="eyebrow">DIGITAL TWIN SCENARIO LAB</p>
+        <h2>Stress-test the virtual city</h2>
+      </div>
+      <div class="scenario-buttons">
+        <button data-scenario="baseline" class="active">Baseline</button>
+        <button data-scenario="traffic_surge">Traffic Surge</button>
+        <button data-scenario="dust_storm">Dust Storm</button>
+        <button data-scenario="industrial_event">Industrial Event</button>
+        <button data-scenario="heat_wave">Heat Wave</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading"><div><p class="eyebrow">MONITORING NETWORK</p><h2>Live environmental stations</h2></div><span id="last-update">Waiting for data…</span></div>
+      <div id="stations" class="station-grid"></div>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="panel">
+        <p class="eyebrow">AI-READY INSIGHT LAYER</p>
+        <h2>Environmental intelligence</h2>
+        <p id="insight">The foundation is streaming correlated environmental data. Advanced anomaly detection, forecasting and explainable AI arrive in the next milestone.</p>
+      </article>
+      <article class="panel alert-panel">
+        <div class="section-heading compact"><div><p class="eyebrow">EVENT CENTER</p><h2>Latest alerts</h2></div></div>
+        <div id="alerts" class="alerts"><p class="muted">No alerts yet.</p></div>
+      </article>
+    </section>
+  </main>
+
+  <footer>EcoPulse AI · Every virtual reading is explicitly marked as simulated · Built for environmental engineering, IoT and AI research.</footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
