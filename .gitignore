@@ -9,4 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 data/runtime/
+data/*.db
+data/*.db-*
 *.log

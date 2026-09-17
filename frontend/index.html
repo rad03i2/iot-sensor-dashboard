@@ -3,15 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EcoPulse AI</title>
+  <meta name="description" content="EcoPulse AI — virtual environmental intelligence, digital twin simulation, historical playback and IoT-ready monitoring." />
+  <title>EcoPulse AI — Environmental Digital Twin</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+
   <header class="topbar">
     <div>
       <p class="eyebrow">VIRTUAL ENVIRONMENTAL INTELLIGENCE</p>
       <h1>EcoPulse <span>AI</span></h1>
+      <p class="subtitle">Environmental digital twin · live simulation · historical intelligence</p>
     </div>
     <div class="live"><i></i><span>LIVE SIMULATION</span></div>
   </header>
@@ -27,6 +32,7 @@
         <div><span>Stations</span><strong id="station-count">5</strong></div>
         <div><span>Scenario</span><strong id="scenario">baseline</strong></div>
         <div><span>Data source</span><strong>SIMULATED</strong></div>
+        <div><span>History</span><strong id="history-samples">-- samples</strong></div>
       </div>
     </section>
 
@@ -34,6 +40,7 @@
       <div>
         <p class="eyebrow">DIGITAL TWIN SCENARIO LAB</p>
         <h2>Stress-test the virtual city</h2>
+        <p class="muted small">Every scenario is synthetic and explicitly separated from regulatory measurements.</p>
       </div>
       <div class="scenario-buttons">
         <button data-scenario="baseline" class="active">Baseline</button>
@@ -44,16 +51,101 @@
       </div>
     </section>
 
+    <section class="map-layout">
+      <article class="panel map-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">GEOSPATIAL DIGITAL TWIN</p>
+            <h2>Environmental pressure map</h2>
+          </div>
+          <label class="select-wrap">Layer
+            <select id="map-metric">
+              <option value="pm25_ug_m3">PM2.5</option>
+              <option value="pm10_ug_m3">PM10</option>
+              <option value="co2_ppm">CO₂</option>
+              <option value="noise_db">Noise</option>
+              <option value="temperature_c">Temperature</option>
+              <option value="environmental_health_score">Health score</option>
+            </select>
+          </label>
+        </div>
+        <div id="map"></div>
+        <div class="map-legend">
+          <span><i class="legend-dot good"></i>lower pressure</span>
+          <span><i class="legend-dot moderate"></i>moderate</span>
+          <span><i class="legend-dot poor"></i>higher pressure</span>
+          <strong id="map-mode">LIVE</strong>
+        </div>
+      </article>
+
+      <aside class="panel time-machine">
+        <p class="eyebrow">TIME MACHINE</p>
+        <h2>Replay the environmental network</h2>
+        <p class="muted">Travel through the simulated historical record and watch spatial conditions change.</p>
+        <label>Window
+          <select id="playback-window">
+            <option value="360">Last 6 hours</option>
+            <option value="720">Last 12 hours</option>
+            <option value="1440" selected>Last 24 hours</option>
+          </select>
+        </label>
+        <div class="playback-clock" id="playback-clock">Load history to begin</div>
+        <input id="playback-slider" type="range" min="0" max="0" value="0" />
+        <div class="playback-actions">
+          <button id="playback-toggle">▶ Play</button>
+          <button id="return-live">Return Live</button>
+        </div>
+        <div class="timeline-note" id="timeline-note">Historical frames are sampled for fast playback.</div>
+      </aside>
+    </section>
+
     <section>
-      <div class="section-heading"><div><p class="eyebrow">MONITORING NETWORK</p><h2>Live environmental stations</h2></div><span id="last-update">Waiting for data…</span></div>
+      <div class="section-heading">
+        <div><p class="eyebrow">MONITORING NETWORK</p><h2>Live environmental stations</h2></div>
+        <span id="last-update">Waiting for data…</span>
+      </div>
       <div id="stations" class="station-grid"></div>
+    </section>
+
+    <section class="history-grid">
+      <article class="panel chart-panel">
+        <div class="section-heading chart-heading">
+          <div><p class="eyebrow">HISTORICAL EXPLORER</p><h2>Time-series trend</h2></div>
+          <div class="chart-controls">
+            <select id="history-station"></select>
+            <select id="history-metric">
+              <option value="pm25_ug_m3">PM2.5</option>
+              <option value="pm10_ug_m3">PM10</option>
+              <option value="co2_ppm">CO₂</option>
+              <option value="noise_db">Noise</option>
+              <option value="temperature_c">Temperature</option>
+              <option value="humidity_pct">Humidity</option>
+              <option value="environmental_health_score">Health score</option>
+            </select>
+            <select id="history-window">
+              <option value="60">1 hour</option>
+              <option value="360">6 hours</option>
+              <option value="1440" selected>24 hours</option>
+            </select>
+          </div>
+        </div>
+        <canvas id="history-chart" height="270"></canvas>
+        <div class="chart-caption" id="chart-caption">Loading historical series…</div>
+      </article>
+
+      <article class="panel intelligence-panel">
+        <p class="eyebrow">ENVIRONMENTAL STORY</p>
+        <h2>What the network is telling us</h2>
+        <p id="insight">Building the latest environmental summary…</p>
+        <div id="daily-overview" class="overview-list"></div>
+      </article>
     </section>
 
     <section class="bottom-grid">
       <article class="panel">
-        <p class="eyebrow">AI-READY INSIGHT LAYER</p>
-        <h2>Environmental intelligence</h2>
-        <p id="insight">The foundation is streaming correlated environmental data. Advanced anomaly detection, forecasting and explainable AI arrive in the next milestone.</p>
+        <p class="eyebrow">SCIENTIFIC TRANSPARENCY</p>
+        <h2>Simulation provenance</h2>
+        <p>EcoPulse AI currently generates synthetic observations from documented station profiles, daily cycles and scenario effects. Values are educational simulation data, not calibrated sensor measurements or regulatory evidence.</p>
       </article>
       <article class="panel alert-panel">
         <div class="section-heading compact"><div><p class="eyebrow">EVENT CENTER</p><h2>Latest alerts</h2></div></div>
@@ -62,7 +154,9 @@
     </section>
   </main>
 
-  <footer>EcoPulse AI · Every virtual reading is explicitly marked as simulated · Built for environmental engineering, IoT and AI research.</footer>
+  <footer>EcoPulse AI · Environmental engineering × IoT × AI · Simulated data is always identified as simulated.</footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

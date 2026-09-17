@@ -45,11 +45,12 @@ SCENARIO_EFFECTS = {
 
 
 class EnvironmentalSimulator:
-    def __init__(self) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         self.scenario: ScenarioName = "baseline"
         self.intensity: float = 1.0
         self.tick_count = 0
         self.previous: dict[str, EnvironmentalReading] = {}
+        self.rng = random.Random(seed)
 
     def set_scenario(self, scenario: ScenarioName, intensity: float = 1.0) -> None:
         self.scenario = scenario
@@ -72,15 +73,16 @@ class EnvironmentalSimulator:
         effect = SCENARIO_EFFECTS[self.scenario]
         hour = now.hour + now.minute / 60
         temp_wave, humidity_wave = self._daily_cycle(hour)
-        activity = 1.0 + 0.18 * math.sin((hour - 7) / 24 * 4 * math.pi)
 
+        activity = 1.0 + 0.18 * math.sin((hour - 7) / 24 * 4 * math.pi)
         scenario_weight = self.intensity
-        target_temp = 27 + temp_wave + profile.temperature_offset + effect["temp"] * scenario_weight + random.gauss(0, 0.45)
-        target_humidity = 48 + humidity_wave + profile.humidity_offset + effect["humidity"] * scenario_weight + random.gauss(0, 1.4)
-        target_pm25 = profile.pm25 * activity * (1 + (effect["pm25"] - 1) * scenario_weight) + random.gauss(0, 2.0)
-        target_pm10 = profile.pm10 * activity * (1 + (effect["pm10"] - 1) * scenario_weight) + target_pm25 * 0.18 + random.gauss(0, 3.0)
-        target_co2 = profile.co2 * activity * (1 + (effect["co2"] - 1) * scenario_weight) + random.gauss(0, 18)
-        target_noise = profile.noise + effect["noise"] * scenario_weight + 4 * math.sin(hour / 24 * 2 * math.pi) + random.gauss(0, 1.5)
+
+        target_temp = 27 + temp_wave + profile.temperature_offset + effect["temp"] * scenario_weight + self.rng.gauss(0, 0.45)
+        target_humidity = 48 + humidity_wave + profile.humidity_offset + effect["humidity"] * scenario_weight + self.rng.gauss(0, 1.4)
+        target_pm25 = profile.pm25 * activity * (1 + (effect["pm25"] - 1) * scenario_weight) + self.rng.gauss(0, 2.0)
+        target_pm10 = profile.pm10 * activity * (1 + (effect["pm10"] - 1) * scenario_weight) + target_pm25 * 0.18 + self.rng.gauss(0, 3.0)
+        target_co2 = profile.co2 * activity * (1 + (effect["co2"] - 1) * scenario_weight) + self.rng.gauss(0, 18)
+        target_noise = profile.noise + effect["noise"] * scenario_weight + 4 * math.sin(hour / 24 * 2 * math.pi) + self.rng.gauss(0, 1.5)
 
         old = self.previous.get(station.id)
         temperature = self._smooth(old.temperature_c if old else None, target_temp)
@@ -117,6 +119,7 @@ class EnvironmentalSimulator:
         self.previous[station.id] = reading
         return reading
 
-    def tick(self) -> list[EnvironmentalReading]:
+    def tick(self, now: datetime | None = None) -> list[EnvironmentalReading]:
         self.tick_count += 1
-        return [self.generate(station) for station in STATIONS]
+        shared_timestamp = now or datetime.now(timezone.utc)
+        return [self.generate(station, shared_timestamp) for station in STATIONS]
