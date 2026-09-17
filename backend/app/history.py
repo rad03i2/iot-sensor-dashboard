@@ -37,6 +37,10 @@ _COLUMNS = (
 )
 
 
+def _utc_iso(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
 class HistoryStore:
     """Small, durable time-series store for the demo.
 
@@ -115,7 +119,7 @@ class HistoryStore:
         with self._lock, self._connect() as connection:
             cursor = connection.execute(
                 "DELETE FROM readings WHERE timestamp < ?",
-                (cutoff.isoformat(),),
+                (_utc_iso(cutoff),),
             )
             return cursor.rowcount
 
@@ -139,7 +143,7 @@ class HistoryStore:
         """
         with self._lock, self._connect() as connection:
             rows = connection.execute(
-                query, (station_id, cutoff.isoformat(), safe_limit)
+                query, (station_id, _utc_iso(cutoff), safe_limit)
             ).fetchall()
         return [dict(row) for row in rows]
 
@@ -156,7 +160,7 @@ class HistoryStore:
                 WHERE timestamp >= ?
                 ORDER BY timestamp ASC, station_id ASC
                 """,
-                (cutoff.isoformat(),),
+                (_utc_iso(cutoff),),
             ).fetchall()
 
         frames: list[dict] = []
@@ -197,7 +201,7 @@ class HistoryStore:
                 GROUP BY station_id, station_name
                 ORDER BY avg_health DESC
                 """,
-                (cutoff.isoformat(),),
+                (_utc_iso(cutoff),),
             ).fetchall()
             row = connection.execute(
                 """
@@ -208,7 +212,7 @@ class HistoryStore:
                 FROM readings
                 WHERE timestamp >= ?
                 """,
-                (cutoff.isoformat(),),
+                (_utc_iso(cutoff),),
             ).fetchone()
 
         return {

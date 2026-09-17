@@ -332,7 +332,9 @@ async function loadPlayback() {
   $('timeline-note').textContent = playbackFrames.length
     ? `${playbackFrames.length} sampled frames available.`
     : 'No historical frames available yet.';
-  if (playbackFrames.length) showPlaybackFrame(Number(slider.value), false);
+  if (playbackFrames.length) {
+    $('playback-clock').textContent = new Date(playbackFrames[playbackFrames.length - 1].timestamp).toLocaleString();
+  }
 }
 
 function showPlaybackFrame(index, switchMode = true) {
