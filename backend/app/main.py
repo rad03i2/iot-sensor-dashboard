@@ -13,16 +13,25 @@ from .analytics import summarize
 from .config import settings
 from .history import METRICS, HistoryStore
 from .models import Alert, EnvironmentalReading, ScenarioName, ScenarioRequest
+from .mosul_live import MosulLiveService
 from .seed import seed_demo_history
 from .simulator import STATIONS, EnvironmentalSimulator
 
 simulator = EnvironmentalSimulator()
 publisher = AdafruitPublisher()
 history = HistoryStore(settings.database_path)
+mosul_live = MosulLiveService(
+    latitude=settings.mosul_latitude,
+    longitude=settings.mosul_longitude,
+    timezone_name=settings.mosul_timezone,
+    timeout_seconds=settings.upstream_timeout_seconds,
+)
+
 latest: dict[str, EnvironmentalReading] = {}
 alert_history: deque[Alert] = deque(maxlen=300)
 clients: set[WebSocket] = set()
-loop_task: asyncio.Task | None = None
+simulation_task: asyncio.Task | None = None
+mosul_task: asyncio.Task | None = None
 
 
 async def broadcast(payload: dict) -> None:
@@ -74,33 +83,53 @@ async def simulation_loop() -> None:
         await asyncio.sleep(max(settings.simulation_interval_seconds, 1.0))
 
 
+async def mosul_refresh_loop() -> None:
+    while True:
+        try:
+            await mosul_live.refresh()
+        except Exception:
+            pass
+        await asyncio.sleep(max(settings.live_refresh_seconds, 60))
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global loop_task
-    if settings.seed_demo_history:
-        await asyncio.to_thread(
-            seed_demo_history,
-            history,
-            settings.demo_history_hours,
-            settings.demo_history_step_minutes,
-        )
-    await perform_tick()
-    loop_task = asyncio.create_task(simulation_loop())
+    global simulation_task, mosul_task
+
+    try:
+        await mosul_live.refresh()
+    except Exception:
+        pass
+    mosul_task = asyncio.create_task(mosul_refresh_loop())
+
+    if settings.simulation_enabled:
+        if settings.seed_demo_history:
+            await asyncio.to_thread(
+                seed_demo_history,
+                history,
+                settings.demo_history_hours,
+                settings.demo_history_step_minutes,
+            )
+        await perform_tick()
+        simulation_task = asyncio.create_task(simulation_loop())
+
     yield
-    if loop_task:
-        loop_task.cancel()
-        try:
-            await loop_task
-        except asyncio.CancelledError:
-            pass
+
+    for task in (simulation_task, mosul_task):
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(
-    title="EcoPulse AI API",
-    version="0.2.0",
+    title="EcoPulse Mosul API",
+    version="0.3.0",
     description=(
-        "Virtual environmental intelligence and digital-twin platform with "
-        "durable history, scenario playback and optional Adafruit IO publishing."
+        "Mosul-focused environmental public wallboard. Live sections use external "
+        "weather, atmospheric and hydrological models with explicit provenance."
     ),
     lifespan=lifespan,
 )
@@ -120,15 +149,29 @@ async def dashboard():
 
 @app.get("/health")
 async def health():
+    snapshot = mosul_live.snapshot()
     return {
         "status": "ok",
         "service": settings.app_name,
-        "scenario": simulator.scenario,
-        "stations": len(STATIONS),
-        "source": "simulated",
-        "history_samples": await asyncio.to_thread(history.count),
+        "mode": "mosul_live_wallboard",
+        "simulation_enabled": settings.simulation_enabled,
+        "sources": {
+            key: (snapshot.get(key) or {}).get("status")
+            for key in ("weather", "air", "river")
+        },
+        "last_refresh": snapshot.get("last_refresh"),
         "database": "sqlite",
     }
+
+
+@app.get("/api/mosul/live")
+async def mosul_snapshot():
+    return mosul_live.snapshot()
+
+
+@app.post("/api/mosul/refresh")
+async def mosul_manual_refresh():
+    return await mosul_live.refresh()
 
 
 @app.get("/api/stations")
@@ -207,26 +250,30 @@ async def playback(
         "window_minutes": minutes,
         "frames": frames,
         "source_notice": (
-            "Playback contains simulated observations unless a reading explicitly "
-            "declares another source."
+            "Legacy playback contains simulated observations unless a reading "
+            "explicitly declares another source."
         ),
     }
 
 
 @app.post("/api/simulation/tick")
 async def manual_tick():
+    if not settings.simulation_enabled:
+        raise HTTPException(status_code=409, detail="Simulation mode is disabled")
     return await perform_tick()
 
 
 @app.post("/api/scenarios/{scenario}")
 async def set_scenario(scenario: ScenarioName, request: ScenarioRequest):
+    if not settings.simulation_enabled:
+        raise HTTPException(status_code=409, detail="Simulation mode is disabled")
     simulator.set_scenario(scenario, request.intensity)
     readings = await perform_tick()
     return {
         "scenario": scenario,
         "intensity": request.intensity,
         "readings": readings,
-        "message": "Scenario applied to the virtual environmental network.",
+        "message": "Scenario applied to the legacy digital-twin lab.",
     }
 
 
@@ -235,18 +282,6 @@ async def environment_stream(websocket: WebSocket):
     await websocket.accept()
     clients.add(websocket)
     try:
-        if latest:
-            await websocket.send_json(
-                {
-                    "type": "environment_update",
-                    "scenario": simulator.scenario,
-                    "readings": [
-                        item.model_dump(mode="json") for item in latest.values()
-                    ],
-                    "alerts": [],
-                    "summary": summarize(list(latest.values())),
-                }
-            )
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:

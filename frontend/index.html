@@ -1,160 +1,142 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="EcoPulse AI — virtual environmental intelligence, digital twin simulation, historical playback and IoT-ready monitoring." />
-  <title>EcoPulse AI — Environmental Digital Twin</title>
+  <meta name="description" content="EcoPulse Mosul — مرصد بيئي رقمي مباشر لمدينة الموصل يعرض الطقس وجودة الهواء والغبار ونموذج تصريف دجلة مع توثيق المصدر." />
+  <title>EcoPulse Mosul | مرصد الموصل البيئي المباشر</title>
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
-
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">VIRTUAL ENVIRONMENTAL INTELLIGENCE</p>
-      <h1>EcoPulse <span>AI</span></h1>
-      <p class="subtitle">Environmental digital twin · live simulation · historical intelligence</p>
-    </div>
-    <div class="live"><i></i><span>LIVE SIMULATION</span></div>
-  </header>
-
-  <main>
-    <section class="hero panel">
-      <div>
-        <p class="eyebrow">NETWORK HEALTH</p>
-        <div class="score-row"><strong id="network-score">--</strong><span>/100</span></div>
-        <p id="network-status" class="status-text">Connecting to environmental network…</p>
+  <div class="wallboard">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">EP</div>
+        <div>
+          <div class="brand-line"><h1>EcoPulse Mosul</h1><span>LIVE</span></div>
+          <p>مرصد الموصل البيئي المباشر · نينوى، العراق</p>
+        </div>
       </div>
-      <div class="hero-stats">
-        <div><span>Stations</span><strong id="station-count">5</strong></div>
-        <div><span>Scenario</span><strong id="scenario">baseline</strong></div>
-        <div><span>Data source</span><strong>SIMULATED</strong></div>
-        <div><span>History</span><strong id="history-samples">-- samples</strong></div>
+      <div class="header-center">
+        <strong>بيانات حقيقية من مصادر خارجية</strong>
+        <span>ليست جميعها قياسات محطات أرضية — نوع المصدر موضح لكل مؤشر</span>
       </div>
+      <div class="clockbox">
+        <strong id="clock">--:--:--</strong>
+        <span id="date">--</span>
+      </div>
+    </header>
+
+    <section class="kpi-strip">
+      <article class="kpi"><span>🌡️ الحرارة</span><strong id="k-temp">--</strong><small>Open-Meteo</small></article>
+      <article class="kpi"><span>💧 الرطوبة</span><strong id="k-humidity">--</strong><small>Weather model</small></article>
+      <article class="kpi"><span>🌫️ PM2.5</span><strong id="k-pm25">--</strong><small>CAMS model</small></article>
+      <article class="kpi"><span>🌁 PM10</span><strong id="k-pm10">--</strong><small>CAMS model</small></article>
+      <article class="kpi"><span>🫁 US AQI</span><strong id="k-aqi">--</strong><small id="k-aqi-label">CAMS model</small></article>
+      <article class="kpi"><span>🟤 الغبار</span><strong id="k-dust">--</strong><small>CAMS model</small></article>
+      <article class="kpi"><span>☀️ UV</span><strong id="k-uv">--</strong><small>CAMS model</small></article>
+      <article class="kpi river-kpi"><span>🌊 دجلة</span><strong id="k-river">--</strong><small>GloFAS model</small></article>
     </section>
 
-    <section class="controls panel">
-      <div>
-        <p class="eyebrow">DIGITAL TWIN SCENARIO LAB</p>
-        <h2>Stress-test the virtual city</h2>
-        <p class="muted small">Every scenario is synthetic and explicitly separated from regulatory measurements.</p>
-      </div>
-      <div class="scenario-buttons">
-        <button data-scenario="baseline" class="active">Baseline</button>
-        <button data-scenario="traffic_surge">Traffic Surge</button>
-        <button data-scenario="dust_storm">Dust Storm</button>
-        <button data-scenario="industrial_event">Industrial Event</button>
-        <button data-scenario="heat_wave">Heat Wave</button>
-      </div>
-    </section>
-
-    <section class="map-layout">
-      <article class="panel map-panel">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">GEOSPATIAL DIGITAL TWIN</p>
-            <h2>Environmental pressure map</h2>
-          </div>
-          <label class="select-wrap">Layer
-            <select id="map-metric">
-              <option value="pm25_ug_m3">PM2.5</option>
-              <option value="pm10_ug_m3">PM10</option>
-              <option value="co2_ppm">CO₂</option>
-              <option value="noise_db">Noise</option>
-              <option value="temperature_c">Temperature</option>
-              <option value="environmental_health_score">Health score</option>
-            </select>
-          </label>
+    <main class="main-grid">
+      <section class="panel map-panel">
+        <div class="panel-head">
+          <div><span class="eyebrow">MOSUL ENVIRONMENTAL MAP</span><h2>الموصل الآن</h2></div>
+          <div class="source-pill"><i id="live-dot"></i><span id="freshness">جارٍ جلب البيانات…</span></div>
         </div>
         <div id="map"></div>
-        <div class="map-legend">
-          <span><i class="legend-dot good"></i>lower pressure</span>
-          <span><i class="legend-dot moderate"></i>moderate</span>
-          <span><i class="legend-dot poor"></i>higher pressure</span>
-          <strong id="map-mode">LIVE</strong>
+        <div class="map-caption">
+          <span>الدائرة تمثل خلية نموذج جودة الهواء قرب الموصل وليست شبكة حساسات أرضية.</span>
+          <b>36.335°N · 43.1189°E</b>
         </div>
-      </article>
+      </section>
 
-      <aside class="panel time-machine">
-        <p class="eyebrow">TIME MACHINE</p>
-        <h2>Replay the environmental network</h2>
-        <p class="muted">Travel through the simulated historical record and watch spatial conditions change.</p>
-        <label>Window
-          <select id="playback-window">
-            <option value="360">Last 6 hours</option>
-            <option value="720">Last 12 hours</option>
-            <option value="1440" selected>Last 24 hours</option>
-          </select>
-        </label>
-        <div class="playback-clock" id="playback-clock">Load history to begin</div>
-        <input id="playback-slider" type="range" min="0" max="0" value="0" />
-        <div class="playback-actions">
-          <button id="playback-toggle">▶ Play</button>
-          <button id="return-live">Return Live</button>
-        </div>
-        <div class="timeline-note" id="timeline-note">Historical frames are sampled for fast playback.</div>
-      </aside>
-    </section>
-
-    <section>
-      <div class="section-heading">
-        <div><p class="eyebrow">MONITORING NETWORK</p><h2>Live environmental stations</h2></div>
-        <span id="last-update">Waiting for data…</span>
-      </div>
-      <div id="stations" class="station-grid"></div>
-    </section>
-
-    <section class="history-grid">
-      <article class="panel chart-panel">
-        <div class="section-heading chart-heading">
-          <div><p class="eyebrow">HISTORICAL EXPLORER</p><h2>Time-series trend</h2></div>
-          <div class="chart-controls">
-            <select id="history-station"></select>
-            <select id="history-metric">
-              <option value="pm25_ug_m3">PM2.5</option>
-              <option value="pm10_ug_m3">PM10</option>
-              <option value="co2_ppm">CO₂</option>
-              <option value="noise_db">Noise</option>
-              <option value="temperature_c">Temperature</option>
-              <option value="humidity_pct">Humidity</option>
-              <option value="environmental_health_score">Health score</option>
-            </select>
-            <select id="history-window">
-              <option value="60">1 hour</option>
-              <option value="360">6 hours</option>
-              <option value="1440" selected>24 hours</option>
-            </select>
+      <section class="side-stack">
+        <article class="panel brief-panel">
+          <div class="panel-head compact">
+            <div><span class="eyebrow">ENVIRONMENTAL BRIEF</span><h2>ملخص الموصل البيئي</h2></div>
+            <span class="model-badge">AUTO</span>
           </div>
+          <p id="brief">جارٍ إعداد أول ملخص من البيانات الحقيقية…</p>
+          <div id="alerts" class="alerts"></div>
+        </article>
+
+        <div class="detail-grid">
+          <article class="panel mini-panel">
+            <div class="mini-title"><span>🌤️</span><div><b id="weather-condition">الطقس</b><small>Open-Meteo</small></div></div>
+            <div class="mini-metrics">
+              <span>المحسوسة <b id="feels">--</b></span>
+              <span>الرياح <b id="wind">--</b></span>
+              <span>الضغط <b id="pressure">--</b></span>
+              <span>الرؤية <b id="visibility">--</b></span>
+            </div>
+          </article>
+
+          <article class="panel mini-panel">
+            <div class="mini-title"><span>🧪</span><div><b>الهواء</b><small>Copernicus CAMS</small></div></div>
+            <div class="mini-metrics">
+              <span>NO₂ <b id="no2">--</b></span>
+              <span>SO₂ <b id="so2">--</b></span>
+              <span>O₃ <b id="o3">--</b></span>
+              <span>AOD <b id="aod">--</b></span>
+            </div>
+          </article>
+
+          <article class="panel mini-panel river-panel">
+            <div class="mini-title"><span>🌊</span><div><b>نهر دجلة</b><small>GloFAS v4 model</small></div></div>
+            <div class="river-row">
+              <strong id="river-discharge">--</strong>
+              <span id="river-trend">--</span>
+            </div>
+            <p>تقدير خلية هيدرولوجية قرب الموصل، وليس قراءة محطة قياس محلية.</p>
+          </article>
+
+          <article class="panel mini-panel source-summary">
+            <div class="mini-title"><span>🔗</span><div><b>حالة المصادر</b><small>Auto recovery</small></div></div>
+            <div id="source-status" class="source-status"></div>
+          </article>
         </div>
-        <canvas id="history-chart" height="270"></canvas>
-        <div class="chart-caption" id="chart-caption">Loading historical series…</div>
-      </article>
+      </section>
 
-      <article class="panel intelligence-panel">
-        <p class="eyebrow">ENVIRONMENTAL STORY</p>
-        <h2>What the network is telling us</h2>
-        <p id="insight">Building the latest environmental summary…</p>
-        <div id="daily-overview" class="overview-list"></div>
-      </article>
-    </section>
+      <section class="lower-grid">
+        <article class="panel trend-panel">
+          <div class="panel-head compact">
+            <div><span class="eyebrow">NEXT 24 HOURS · CAMS</span><h2>اتجاه PM2.5 والغبار</h2></div>
+            <span class="tiny-note">µg/m³</span>
+          </div>
+          <canvas id="air-chart"></canvas>
+          <div class="chart-legend"><span><i class="pm"></i>PM2.5</span><span><i class="dust"></i>غبار</span></div>
+        </article>
 
-    <section class="bottom-grid">
-      <article class="panel">
-        <p class="eyebrow">SCIENTIFIC TRANSPARENCY</p>
-        <h2>Simulation provenance</h2>
-        <p>EcoPulse AI currently generates synthetic observations from documented station profiles, daily cycles and scenario effects. Values are educational simulation data, not calibrated sensor measurements or regulatory evidence.</p>
-      </article>
-      <article class="panel alert-panel">
-        <div class="section-heading compact"><div><p class="eyebrow">EVENT CENTER</p><h2>Latest alerts</h2></div></div>
-        <div id="alerts" class="alerts"><p class="muted">No alerts yet.</p></div>
-      </article>
-    </section>
-  </main>
+        <article class="panel forecast-panel">
+          <div class="panel-head compact">
+            <div><span class="eyebrow">5-DAY FORECAST</span><h2>توقعات الموصل</h2></div>
+          </div>
+          <div id="forecast" class="forecast"></div>
+        </article>
 
-  <footer>EcoPulse AI · Environmental engineering × IoT × AI · Simulated data is always identified as simulated.</footer>
+        <article class="panel provenance-panel">
+          <div class="panel-head compact">
+            <div><span class="eyebrow">SOURCE TRANSPARENCY</span><h2>ما الذي تراه؟</h2></div>
+          </div>
+          <div class="provenance">
+            <div><i class="weather"></i><span><b>الطقس</b> نموذج تنبؤ جوي</span></div>
+            <div><i class="air"></i><span><b>الهواء والغبار</b> CAMS عالمي</span></div>
+            <div><i class="river"></i><span><b>دجلة</b> GloFAS هيدرولوجي</span></div>
+          </div>
+          <p>لا نعرض هذه النماذج كقياسات تنظيمية أو كبديل لمحطات الرصد والمعايرة الميدانية.</p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="ticker-wrap">
+      <div class="ticker-label">المصادر</div>
+      <div class="ticker"><span>Open-Meteo Weather · Copernicus CAMS Global · GloFAS v4 · OpenStreetMap · التحديث الآلي كل 5 دقائق · EcoPulse Mosul · مرصد بيئي رقمي مفتوح للموصل ونينوى</span></div>
+      <div id="last-refresh" class="last-refresh">آخر تحديث: --</div>
+    </footer>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="/static/app.js"></script>
