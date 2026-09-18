@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#06110e">
+  <meta name="description" content="نبض الموصل البيئي — منصة الموصل الذكية للرصد البيئي المباشر">
+  <title>نبض الموصل البيئي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="broadcast">
+    <div class="scan"></div>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="identity-wrap" aria-label="هوية المشروع">
+          <div class="identity-card">
+            <div class="identity-face logo-face">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(76,224,163,.25)" stroke-width="2"/>
+                <circle cx="60" cy="60" r="40" fill="none" stroke="rgba(88,205,236,.22)" stroke-width="2"/>
+                <path d="M17 72C34 59 48 58 60 63c14 6 25 4 43-11" fill="none" stroke="#4ce0a3" stroke-width="6" stroke-linecap="round"/>
+                <path d="M52 25c16-1 26 8 27 22 1 15-11 26-25 35-4-9-11-15-14-23-6-14 3-31 12-34Z" fill="#58cdec"/>
+                <circle cx="31" cy="40" r="6" fill="#ead36e"/>
+              </svg>
+              <small>نبض الموصل</small>
+            </div>
+            <div class="identity-face photo-face">
+              <img src="/static/assets/radwan-profile.webp" alt="صورة صاحب المشروع">
+              <small>صاحب المشروع</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="brand-copy">
+          <div class="brand-line">
+            <h1>نبض الموصل البيئي</h1>
+            <span class="live-badge"><i></i> مباشر</span>
+          </div>
+          <p>منصة الموصل الذكية للرصد البيئي المباشر</p>
+        </div>
+      </div>
+
+      <div class="system-state">
+        <span>حالة المنصة</span>
+        <strong id="freshness">جارٍ الاتصال بالمصادر البيئية…</strong>
+        <small>تحديث تلقائي مستمر مع الاحتفاظ بآخر قراءة صحيحة</small>
+      </div>
+
+      <div class="clock">
+        <strong id="clock">--:--:--</strong>
+        <span id="date">--</span>
+      </div>
+    </header>
+
+    <section id="alertBar" class="alert-bar">
+      <b>تنبيه بيئي</b>
+      <strong id="alertTitle">المرصد يعمل بشكل طبيعي</strong>
+      <span id="alertMessage">لا توجد تنبيهات بارزة حالياً.</span>
+    </section>
+
+    <section class="kpis">
+      <article class="kpi"><span>الحرارة</span><strong id="kTemp">--</strong><small>°C</small></article>
+      <article class="kpi"><span>الرطوبة</span><strong id="kHumidity">--</strong><small>%</small></article>
+      <article class="kpi aqi"><span>AQI</span><strong id="kAqi">--</strong><small id="kAqiLabel">بانتظار البيانات</small></article>
+      <article class="kpi"><span>PM2.5</span><strong id="kPm25">--</strong><small>µg/m³</small></article>
+      <article class="kpi"><span>PM10</span><strong id="kPm10">--</strong><small>µg/m³</small></article>
+      <article class="kpi"><span>الغبار</span><strong id="kDust">--</strong><small>µg/m³</small></article>
+      <article class="kpi"><span>UV</span><strong id="kUv">--</strong><small>مؤشر</small></article>
+      <article class="kpi"><span>دجلة</span><strong id="kRiver">--</strong><small>م³/ث</small></article>
+    </section>
+
+    <main class="main-grid">
+      <section class="panel map-panel scene-panel">
+        <div class="panel-head">
+          <div>
+            <span>المشهد البيئي المباشر</span>
+            <h2>مدينة الموصل الآن</h2>
+          </div>
+          <div class="scene-state">
+            <small>المشهد الحالي</small>
+            <strong id="sceneName">جودة الهواء</strong>
+            <b id="sceneNo">01</b>
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div id="map"></div>
+          <div class="hud hud-top">
+            <div><span>المصدر</span><b id="sceneSource">CAMS Global</b></div>
+            <div><span>نوع البيانات</span><b id="sceneType">نموذج جوي</b></div>
+          </div>
+          <div class="hud hud-bottom" id="sceneHud">
+            <div>
+              <span id="sceneTitle">جودة الهواء</span>
+              <strong id="sceneValue">--</strong>
+            </div>
+            <p id="sceneText">يعرض هذا المشهد الوضع البيئي الحالي فوق مدينة الموصل بصورة مبسطة للبث.</p>
+          </div>
+        </div>
+
+        <div class="map-foot">
+          <span>الموصل · نينوى · العراق</span>
+          <span>الخريطة الأساسية: OpenStreetMap</span>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="panel status-panel">
+          <div class="panel-head compact">
+            <div><span>الحالة البيئية العامة</span><h2>وضع الموصل الآن</h2></div>
+            <em>حي</em>
+          </div>
+          <div class="status-body">
+            <div class="aqi-ring" id="aqiRing">
+              <div><span>AQI</span><strong id="heroAqi">--</strong><small id="heroAqiLabel">بانتظار البيانات</small></div>
+            </div>
+            <div class="score-card">
+              <strong id="overallScore">--</strong>
+              <span id="overallLabel">بانتظار البيانات</span>
+              <p id="overallAdvice">سيتم احتساب التقييم العام عند وصول البيانات.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel brief-panel">
+          <div class="panel-head compact"><div><span>الملخص الذكي</span><h2>ماذا يحدث في الموصل؟</h2></div></div>
+          <p id="brief">جارٍ إعداد أول ملخص بيئي عربي…</p>
+        </section>
+
+        <section class="panel sources-panel">
+          <div class="panel-head compact"><div><span>سلامة البيانات</span><h2>حالة المصادر</h2></div></div>
+          <div id="sources" class="sources"></div>
+        </section>
+      </aside>
+
+      <section class="bottom">
+        <article class="panel mini-card">
+          <div class="mini-title"><span>الطقس</span><strong id="weatherCondition">--</strong></div>
+          <div class="mini-grid">
+            <div><span>المحسوسة</span><b id="feels">--</b></div>
+            <div><span>الرياح</span><b id="wind">--</b></div>
+            <div><span>الضغط</span><b id="pressure">--</b></div>
+            <div><span>الرؤية</span><b id="visibility">--</b></div>
+          </div>
+        </article>
+
+        <article class="panel mini-card">
+          <div class="mini-title"><span>ملوثات الهواء</span><strong>µg/m³</strong></div>
+          <div class="mini-grid">
+            <div><span>NO₂</span><b id="no2">--</b></div>
+            <div><span>SO₂</span><b id="so2">--</b></div>
+            <div><span>O₃</span><b id="o3">--</b></div>
+            <div><span>AOD</span><b id="aod">--</b></div>
+          </div>
+        </article>
+
+        <article class="panel mini-card river-card">
+          <div class="mini-title"><span>نهر دجلة</span><strong>GloFAS</strong></div>
+          <div class="river-value"><b id="riverValue">--</b><span id="riverTrend">--</span></div>
+          <p>تقدير هيدرولوجي رقمي قرب الموصل، وليس محطة قياس أرضية محلية.</p>
+        </article>
+
+        <article class="panel chart-card">
+          <div class="mini-title"><span>اتجاه 24 ساعة</span><strong>PM2.5 · الغبار</strong></div>
+          <canvas id="airChart"></canvas>
+          <div class="legend"><span><i class="pm"></i>PM2.5</span><span><i class="dust"></i>الغبار</span></div>
+        </article>
+
+        <article class="panel forecast-card">
+          <div class="mini-title"><span>توقعات الموصل</span><strong>5 أيام</strong></div>
+          <div id="forecast" class="forecast"></div>
+        </article>
+
+        <article class="panel events-card">
+          <div class="mini-title"><span>مركز الأحداث</span><strong>مباشر</strong></div>
+          <div id="events" class="events"></div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="ticker-footer">
+      <b>المصادر</b>
+      <div class="ticker"><span>Open-Meteo · Copernicus CAMS Global · GloFAS v4 · OpenStreetMap · جميع البيانات النموذجية موضحة بصراحة ولا تُعرض كقياسات تنظيمية أرضية · نبض الموصل البيئي</span></div>
+      <span id="lastRefresh">آخر تحديث: --</span>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
